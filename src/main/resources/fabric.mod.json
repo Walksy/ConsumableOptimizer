@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "consumableoptimizer",
+  "version": "${version}",
+  "name": "Consumable Optimizer",
+  "description": "Ensures eating is handled client-side",
+  "authors": [
+    "Walksy"
+  ],
+  "contact": {
+
+  },
+  "license": "MIT",
+  "icon": "assets/walksy/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "main": [
+      "walksy.consumableoptimizer.ConsumableOptimizer"
+    ],
+    "modmenu": [
+      "walksy.consumableoptimizer.config.ModMenuIntegration"
+    ]
+  },
+  "mixins": [
+    "consumableoptimizer.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": "*",
+    "minecraft": "*",
+    "java": ">=17",
+    "fabric-api": "*"
+  }
+}
