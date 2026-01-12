@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <bytecodeTargetLevel target="17" />
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_STRING" value="-AoutRefMapFile=C:\Users\walks\IdeaProjects\DelMe2\build\classes\java\main\ConsumableOptimizer-refmap.json -AdefaultObfuscationEnv=named:intermediary -Aquiet=true -AoutMapFileNamedIntermediary=C:\Users\walks\IdeaProjects\DelMe2\build\loom-cache\mixin-map-net.fabricmc.yarn.1_21_4.1.21.4+build.8-v2.main.tiny -AinMapFileNamedIntermediary=C:\Users\walks\.gradle\caches\fabric-loom\1.21.4\net.fabricmc.yarn.1_21_4.1.21.4+build.8-v2\mappings.tiny" />
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="DelMe2.test" options="-AoutRefMapFile=C:\Users\walks\IdeaProjects\DelMe2\build\classes\java\test\test-ConsumableOptimizer-refmap.json -AdefaultObfuscationEnv=named:intermediary -Aquiet=true -AoutMapFileNamedIntermediary=C:\Users\walks\IdeaProjects\DelMe2\build\loom-cache\mixin-map-net.fabricmc.yarn.1_21_4.1.21.4+build.8-v2.test.tiny -AinMapFileNamedIntermediary=C:\Users\walks\.gradle\caches\fabric-loom\1.21.4\net.fabricmc.yarn.1_21_4.1.21.4+build.8-v2\mappings.tiny" />
+    </option>
+  </component>
+</project>

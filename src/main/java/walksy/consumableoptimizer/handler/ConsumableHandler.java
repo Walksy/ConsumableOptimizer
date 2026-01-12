@@ -11,7 +11,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.consume.ConsumeEffect;
 import net.minecraft.item.consume.PlaySoundConsumeEffect;
-import net.minecraft.item.consume.TeleportRandomlyConsumeEffect;
 import net.minecraft.item.consume.UseAction;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.EntityStatusS2CPacket;
@@ -24,7 +23,7 @@ import net.minecraft.util.math.MathHelper;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import walksy.consumableoptimizer.ConsumableOptimizer;
-import walksy.consumableoptimizer.DataTrackerValues;
+import walksy.consumableoptimizer.data.EntityDataTrackerValues;
 
 import java.util.List;
 
@@ -50,40 +49,82 @@ public class ConsumableHandler {
         }
 
         if (altSound != null) {
-            player.getWorld().playSound(player, player.getX(), player.getY(), player.getZ(), altSound,
-                    player.getSoundCategory(), 1.0f, 1.0f);
+            MinecraftClient.getInstance().world.playSound(player, player.getX(), player.getY(), player.getZ(), altSound,
+                player.getSoundCategory(), 1.0f, 1.0f);
         }
 
         consumeItem(player);
         ci.cancel();
     }
 
-    public static void handleServerResponse(Packet<?> packet, CallbackInfo ci) {
-
+    public static void handlePacket$networkThread(Packet<?> packet, CallbackInfo ci) {
         MinecraftClient client = MinecraftClient.getInstance();
+
+        if (client == null || client.world == null || client.player == null || packet == null) {
+            return;
+        }
+
         ClientPlayerEntity player = client.player;
+        if (packet instanceof EntityStatusS2CPacket statusPacket) {
+            if (!ConsumableOptimizer.hasConsumable()) {
+                return;
+            }
 
-        if (packet instanceof EntityTrackerUpdateS2CPacket trackerPacket && player != null) {
-            Entity entity = client.world.getEntityById(trackerPacket.id());
-            if (entity == player && ConsumableOptimizer.hasConsumable()) {
-                List<DataTracker.SerializedEntry<?>> filtered = trackerPacket.trackedValues().stream()
-                        .filter(entry -> entry.id() == DataTrackerValues.HEALTH.getId()
-                                || entry.id() == DataTrackerValues.ABSORPTION.getId())
-                        .toList();
+            Entity entity;
+            try {
+                entity = statusPacket.getEntity(client.world);
+            } catch (Throwable t) {
+                return;
+            }
 
-                entity.getDataTracker().writeUpdatedEntries(filtered);
+            if (entity != player) {
+                return;
+            }
+
+            if (statusPacket.getStatus() == EntityStatuses.CONSUME_ITEM) {
                 ci.cancel();
             }
         }
-
-        if (packet instanceof EntityStatusS2CPacket statusPacket
-                && statusPacket.getStatus() == EntityStatuses.CONSUME_ITEM
-                && player != null
-                && ConsumableOptimizer.hasConsumable()
-                && statusPacket.getEntity(client.world) == player) {
-            ci.cancel();
-        }
     }
+
+    public static void handleEntityTrackerUpdate$clientThread(EntityTrackerUpdateS2CPacket packet, CallbackInfo ci) {
+        MinecraftClient client = MinecraftClient.getInstance();
+        ClientPlayerEntity player = client.player;
+        Entity entity = client.world.getEntityById(packet.id());
+        if (entity != player) {
+            return;
+        }
+
+        if (!ConsumableOptimizer.hasConsumable()) {
+            return;
+        }
+
+        List<DataTracker.SerializedEntry<?>> trackedValues = packet.trackedValues();
+        if (trackedValues == null || trackedValues.isEmpty()) {
+            return;
+        }
+
+        int consumptionId = EntityDataTrackerValues.CONSUMPTION.getId();
+
+        List<DataTracker.SerializedEntry<?>> filtered = trackedValues.stream()
+            .filter(entry -> entry != null && entry.id() != consumptionId)
+            .toList();
+
+        if (filtered.size() == trackedValues.size()) {
+            return;
+        }
+
+        try {
+            player.getDataTracker().writeUpdatedEntries(filtered);
+            ci.cancel();
+        } catch (Throwable t) {
+
+        }
+
+        return;
+
+    }
+
 
     public static void handleServerSounds(SoundEvent sound, CallbackInfo ci) {
         if (sound == SoundEvents.ENTITY_PLAYER_BURP && cancelServerBurp) {
@@ -113,8 +154,8 @@ public class ConsumableHandler {
         SoundEvent sound = component.sound().value();
         soundToCancel = sound;
 
-        player.getWorld().playSound(player, player.getX(), player.getY(), player.getZ(), sound,
-                SoundCategory.NEUTRAL, 1.0f, player.getRandom().nextTriangular(1.0f, 0.4f));
+        MinecraftClient.getInstance().world.playSound(player, player.getX(), player.getY(), player.getZ(), sound,
+            SoundCategory.NEUTRAL, 1.0f, player.getRandom().nextTriangular(1.0f, 0.4f));
     }
 
     private static boolean requiresBurp(ItemStack stack, ConsumableComponent comp) {
@@ -122,9 +163,9 @@ public class ConsumableHandler {
     }
 
     private static void playBurpSound(ClientPlayerEntity player) {
-        player.getWorld().playSound(player, player.getX(), player.getY(), player.getZ(),
-                SoundEvents.ENTITY_PLAYER_BURP, SoundCategory.PLAYERS,
-                0.5f, MathHelper.nextBetween(player.getRandom(), 0.9f, 1.0f));
+        MinecraftClient.getInstance().world.playSound(player, player.getX(), player.getY(), player.getZ(),
+            SoundEvents.ENTITY_PLAYER_BURP, SoundCategory.PLAYERS,
+            0.5f, MathHelper.nextBetween(player.getRandom(), 0.9f, 1.0f));
     }
 
     private static void consumeItem(ClientPlayerEntity player) {
@@ -138,9 +179,8 @@ public class ConsumableHandler {
             player.stopUsingItem();
             return;
         }
-
         if (!activeStack.isEmpty()) {
-            ItemStack result = activeStack.finishUsing(player.getWorld(), player);
+            ItemStack result = activeStack.finishUsing(MinecraftClient.getInstance().world, player);
             if (!ItemStack.areEqual(result, activeStack)) {
                 player.setStackInHand(hand, result);
             }

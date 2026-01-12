@@ -1,33 +1,36 @@
 {
-  "schemaVersion": 1,
-  "id": "consumableoptimizer",
-  "version": "${version}",
-  "name": "Consumable Optimizer",
-  "description": "Ensures eating is handled client-side",
-  "authors": [
+	"schemaVersion": 1,
+	"id": "consumableoptimizer",
+	"version": "${version}",
+	"name": "Consumable Optimizer",
+	"description": "Handles the consumption of items client-side",
+	"authors": [
     "Walksy"
-  ],
-  "contact": {
-
-  },
-  "license": "MIT",
-  "icon": "assets/walksy/icon.png",
-  "environment": "client",
-  "entrypoints": {
-    "main": [
+	],
+	"contact": {
+    "issues": "https://github.com/Walksy/ConsumableOptimizer/issues",
+    "sources": "https://github.com/Walksy/ConsumableOptimizer",
+    "homepage": "https://discord.com/invite/zeu7uNuBWY"
+	},
+	"license": "MIT",
+	"icon": "assets/walksy/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"main": [
       "walksy.consumableoptimizer.ConsumableOptimizer"
-    ],
-    "modmenu": [
-      "walksy.consumableoptimizer.config.ModMenuIntegration"
+		],
+    "walksylib": [
+      "walksy.consumableoptimizer.config.WalksyLibIntegration"
     ]
-  },
-  "mixins": [
-    "consumableoptimizer.mixins.json"
-  ],
-  "depends": {
-    "fabricloader": "*",
-    "minecraft": "*",
-    "java": ">=17",
-    "fabric-api": "*"
+	},
+	"mixins": [
+      "consumableoptimizer.mixins.json"
+	],
+	"depends": {
+		"fabricloader": "*",
+		"minecraft": "*",
+		"java": ">=17",
+		"fabric-api": "*",
+    "walksylib": ">=0.9.95"
   }
 }

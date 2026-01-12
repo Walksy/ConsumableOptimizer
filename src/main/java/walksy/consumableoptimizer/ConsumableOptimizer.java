@@ -4,15 +4,12 @@ import net.fabricmc.api.ModInitializer;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.component.DataComponentTypes;
-import walksy.consumableoptimizer.config.Config;
 
 public class ConsumableOptimizer implements ModInitializer {
 
-
     @Override
-    public void onInitialize()
-    {
-        Config.CONFIG.load();
+    public void onInitialize() {
+
     }
 
     public static boolean hasConsumable() {

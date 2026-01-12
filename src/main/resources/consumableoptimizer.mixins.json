@@ -3,9 +3,9 @@
 	"package": "walksy.consumableoptimizer.mixin",
 	"compatibilityLevel": "JAVA_17",
 	"client": [
-    "LivingEntityMixin",
     "ClientConnectionMixin",
-    "ClientPlayNetworkHandlerMixin"
+    "ClientPlayNetworkHandlerMixin",
+    "LivingEntityMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

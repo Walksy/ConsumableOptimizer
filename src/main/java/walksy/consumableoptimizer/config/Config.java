@@ -1,33 +1,31 @@
 package walksy.consumableoptimizer.config;
 
-import dev.isxander.yacl3.api.YetAnotherConfigLib;
-import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
-import dev.isxander.yacl3.config.v2.api.SerialEntry;
-import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder;
+import main.walksy.lib.api.WalksyLibConfig;
+import main.walksy.lib.core.config.impl.LocalConfig;
+import main.walksy.lib.core.config.local.Category;
+import main.walksy.lib.core.config.local.Option;
+import main.walksy.lib.core.config.local.options.BooleanOption;
+import main.walksy.lib.core.config.local.options.groups.OptionGroup;
+import main.walksy.lib.core.utils.PathUtils;
 
-import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.text.Text;
-import walksy.consumableoptimizer.config.impl.CategoryBank;
+public class Config implements WalksyLibConfig {
 
-public class Config {
+    public static boolean modEnabled = true;
 
-    public static final ConfigClassHandler<Config> CONFIG = ConfigClassHandler.createBuilder(Config.class)
-            .serializer(config -> GsonConfigSerializerBuilder.create(config)
-                    .setPath(FabricLoader.getInstance().getConfigDir().resolve("consumableoptimizer.json"))
-                    .build())
+    private final Option<Boolean> modEnabledOption = BooleanOption.createBuilder("Mod Enabled", () -> modEnabled, modEnabled, newValue -> modEnabled = newValue)
+        .build();
+
+    private final Category generalCategory = Category.createBuilder("General")
+        .group(OptionGroup.createBuilder("General Options")
+            .addOption(modEnabledOption)
+            .build())
+        .build();
+
+    @Override
+    public LocalConfig define() {
+        return LocalConfig.createBuilder("Consumable Optimizer")
+            .path(PathUtils.ofConfigDir("consumableoptimizer"))
+            .category(generalCategory)
             .build();
-
-    @SerialEntry
-    public boolean modEnabled = true;
-
-    @SuppressWarnings("deprecation") //stop the compiler crying
-    public static Screen createConfigScreen(Screen parent) {
-        var screen = YetAnotherConfigLib.create(CONFIG, (defaults, config, builder) -> {
-            builder.title(Text.literal("Consumable Optimizer Config"));
-            builder.category(CategoryBank.general(config, defaults));
-            return builder;
-        });
-        return screen.generateScreen(parent);
     }
 }

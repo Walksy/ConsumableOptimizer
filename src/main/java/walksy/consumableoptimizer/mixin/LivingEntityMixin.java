@@ -14,9 +14,8 @@ import walksy.consumableoptimizer.handler.ConsumableHandler;
 public class LivingEntityMixin {
 
     @Inject(method = "tickItemStackUsage", at = @At("HEAD"), cancellable = true)
-    private void tickItemStackUsage(ItemStack stack, CallbackInfo ci)
-    {
-        if (!Config.CONFIG.instance().modEnabled) return;
+    private void tickItemStackUsage(ItemStack stack, CallbackInfo ci) {
+        if (!Config.modEnabled || MinecraftClient.getInstance().isInSingleplayer()) return;
         if (LivingEntity.class.cast(this) != MinecraftClient.getInstance().player) return;
         ConsumableHandler.handleItemStackUsage(stack, ci);
     }
