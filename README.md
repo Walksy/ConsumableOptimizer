@@ -12,11 +12,11 @@ High ping can also occationaly causes desyncs when consuming an item, forcing th
 
 **Demonstration Video**
 
-<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/1eVq6nrUfqs" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+https://youtu.be/1eVq6nrUfqs
 
 ---
 
-**Server Opt Out**
+## Server Opt-Out
 
 On servers using popular anti-cheats, such as Grim or Vulkan, it's unlikely for Consumable Optimizer to flag. However, if your server has reports of Consumable Optimizer causing flags or you don't want your player base using the mod, you can opt out using a very simple plugin. Some example code can be found below:
 
