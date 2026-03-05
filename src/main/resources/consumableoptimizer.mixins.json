@@ -5,7 +5,9 @@
 	"client": [
     "ClientConnectionMixin",
     "ClientPlayNetworkHandlerMixin",
-    "LivingEntityMixin"
+    "LivingEntityMixin",
+    "HeldItemRendererMixin",
+    "MinecraftClientMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
