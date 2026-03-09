@@ -44,7 +44,7 @@ public class ConsumableOptimizer implements ModInitializer {
     public static boolean hasConsumable() {
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         return player != null &&
-            (player.getMainHandStack().get(DataComponentTypes.CONSUMABLE) != null
-                || player.getOffHandStack().get(DataComponentTypes.CONSUMABLE) != null);
+            (player.getMainHandStack().get(DataComponentTypes.FOOD) != null
+                || player.getOffHandStack().get(DataComponentTypes.FOOD) != null);
     }
 }

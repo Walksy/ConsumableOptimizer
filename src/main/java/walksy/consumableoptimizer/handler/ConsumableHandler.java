@@ -18,6 +18,7 @@ import net.minecraft.network.packet.s2c.play.EntityTrackerUpdateS2CPacket;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.MathHelper;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -28,7 +29,7 @@ import java.util.List;
 
 public final class ConsumableHandler {
 
-    private static final ConsumptionStateHandler STATE = new ConsumptionStateHandler();
+    public static final ConsumptionStateHandler STATE = new ConsumptionStateHandler();
     private static final MinecraftClient CLIENT = MinecraftClient.getInstance();
 
     public static void handleItemStackUsage(ItemStack stack, CallbackInfo ci) {
@@ -50,9 +51,11 @@ public final class ConsumableHandler {
         if (CLIENT.world == null || CLIENT.player == null) return;
 
         if (packet instanceof EntityStatusS2CPacket status) {
-            if (ConsumableOptimizer.hasConsumable() && status.getEntity(CLIENT.world) == CLIENT.player
-                && status.getStatus() == EntityStatuses.CONSUME_ITEM) {
-                ci.cancel();
+            if (status.getEntity(CLIENT.world) == CLIENT.player && status.getStatus() == EntityStatuses.CONSUME_ITEM) {
+                if (STATE.isWaitingForServer()) {
+                    STATE.stopServerWait();
+                    ci.cancel();
+                }
             }
         }
     }
@@ -95,9 +98,9 @@ public final class ConsumableHandler {
         }
 
         comp.onConsumeEffects().stream()
-            .filter(e -> e instanceof PlaySoundConsumeEffect)
-            .map(e -> ((PlaySoundConsumeEffect) e).sound().value())
-            .forEach(s -> playSound(player, s, false));
+                .filter(e -> e instanceof PlaySoundConsumeEffect)
+                .map(e -> ((PlaySoundConsumeEffect) e).sound().value())
+                .forEach(s -> playSound(player, s, false));
     }
 
     public static boolean shouldSkipHandAnimationOnSwap() {
@@ -107,13 +110,13 @@ public final class ConsumableHandler {
     private static void consume(ClientPlayerEntity player) {
         if (player.isUsingItem()) {
             Hand hand = player.getActiveHand();
-            //STATE.track();
             if (!player.getActiveItem().equals(player.getStackInHand(hand))) {
                 CLIENT.interactionManager.stopUsingItem(player);
             } else {
                 if (!player.getActiveItem().isEmpty() && player.isUsingItem()) {
                     finishUsing(player);
-                    CLIENT.interactionManager.stopUsingItem(player);
+                    player.clearActiveItem();
+                    STATE.startServerWait();
                 }
             }
         }
@@ -143,7 +146,7 @@ public final class ConsumableHandler {
 
     private static void applyFilteredTracker(ClientPlayerEntity player, List<DataTracker.SerializedEntry<?>> values, int excludeId) {
         player.getDataTracker().writeUpdatedEntries(values.stream()
-            .filter(e -> e != null && e.id() != excludeId)
-            .toList());
+                .filter(e -> e != null && e.id() != excludeId)
+                .toList());
     }
 }

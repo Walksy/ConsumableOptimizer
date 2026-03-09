@@ -16,9 +16,9 @@ import walksy.consumableoptimizer.handler.ConsumableHandler;
 public abstract class HeldItemRendererMixin {
 
     @Inject(
-        method = "shouldSkipHandAnimationOnSwap",
-        at = @At("HEAD"),
-        cancellable = true
+            method = "shouldSkipHandAnimationOnSwap",
+            at = @At("HEAD"),
+            cancellable = true
     )
     private void shouldSkipHandAnimationOnSwap(ItemStack from, ItemStack to, CallbackInfoReturnable<Boolean> cir) {
         MinecraftClient client = MinecraftClient.getInstance();
