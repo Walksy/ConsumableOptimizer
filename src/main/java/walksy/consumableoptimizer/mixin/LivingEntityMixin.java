@@ -1,8 +1,8 @@
 package walksy.consumableoptimizer.mixin;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -14,10 +14,10 @@ import walksy.consumableoptimizer.handler.ConsumableHandler;
 @Mixin(LivingEntity.class)
 public class LivingEntityMixin {
 
-    @Inject(method = "tickItemStackUsage", at = @At("HEAD"), cancellable = true)
-    private void tickItemStackUsage(ItemStack stack, CallbackInfo ci) {
-        if (!Config.modEnabled || MinecraftClient.getInstance().isInSingleplayer() || !ConsumableOptimizer.enabledServer) return;
-        if (LivingEntity.class.cast(this) != MinecraftClient.getInstance().player) return;
-        ConsumableHandler.handleItemStackUsage(stack, ci);
+    @Inject(method = "updateUsingItem", at = @At("HEAD"), cancellable = true)
+    private void tickItemStackUsage(ItemStack useItem, CallbackInfo ci) {
+        if (!Config.modEnabled || Minecraft.getInstance().hasSingleplayerServer() || !ConsumableOptimizer.enabledServer) return;
+        if (LivingEntity.class.cast(this) != Minecraft.getInstance().player) return;
+        ConsumableHandler.handleItemStackUsage(useItem, ci);
     }
 }

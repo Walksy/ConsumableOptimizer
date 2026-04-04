@@ -3,12 +3,12 @@
 	"package": "walksy.consumableoptimizer.mixin",
 	"compatibilityLevel": "JAVA_17",
 	"client": [
-		"ClientConnectionMixin",
-		"ClientPlayNetworkHandlerMixin",
+      "ConnectionMixin",
+      "ClientPacketListenerMixin",
 		"LivingEntityMixin",
-		"HeldItemRendererMixin",
-		"MinecraftClientMixin",
-		"ClientPlayerEntityMixin"
+      "ItemInHandRendererMixin",
+		"MinecraftMixin",
+		"LocalPlayerMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

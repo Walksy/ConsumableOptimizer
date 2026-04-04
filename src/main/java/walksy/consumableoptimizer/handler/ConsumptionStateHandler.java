@@ -1,12 +1,11 @@
 package walksy.consumableoptimizer.handler;
 
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.FoodComponent;
-import net.minecraft.entity.data.DataTracker;
-import net.minecraft.item.ItemStack;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.text.Text;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.Consumable;
 
 import java.util.Objects;
 
@@ -76,8 +75,8 @@ public class ConsumptionStateHandler {
         this.trackerTriggerTime = System.currentTimeMillis();
     }
 
-    public boolean updateTrack(DataTracker.SerializedEntry<?> entry, ClientPlayerEntity player) {
-        int value = extractTrackerValue(entry);
+    public boolean updateTrack(SynchedEntityData.DataValue<?> entry, LocalPlayer player) {
+        int value = this.extractTrackerValue(entry);
         boolean beginConsuming = value == 0 || value == 2;
         boolean stopConsuming = value == 1 || value == 3;
 
@@ -87,8 +86,8 @@ public class ConsumptionStateHandler {
 
         if (player.isUsingItem()) {
             ItemStack stack = player.getActiveItem();
-            FoodComponent component = stack.get(DataComponentTypes.FOOD);
-            if (component != null && player.canConsume(component.canAlwaysEat())) {
+            Consumable component = stack.get(DataComponents.CONSUMABLE);
+            if (component != null && component.canConsume(player, stack)) {
                 return true;
             }
         }
@@ -130,7 +129,7 @@ public class ConsumptionStateHandler {
     }
 
 
-    private int extractTrackerValue(DataTracker.SerializedEntry<?> entry) {
+    private int extractTrackerValue(SynchedEntityData.DataValue<?> entry) {
         if (entry.value() instanceof Number n) {
             return n.intValue();
         }
