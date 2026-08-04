@@ -11,8 +11,8 @@ import walksy.consumableoptimizer.handler.ConsumableHandler;
 public class LocalPlayerMixin {
 
     @Redirect(method = "modifyInput", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isUsingItem()Z"))
-    private boolean applyMovementSpeedFactors(LocalPlayer this$0) {
-        if (ConsumableHandler.STATE.isWaitingForServer() && Config.modEnabled) {
+    private boolean applyMovementSpeedFactors(final LocalPlayer this$0) {
+        if (ConsumableHandler.isWaitingForServer() && Config.modEnabled) {
             this$0.setSprinting(false);
             return true;
         }

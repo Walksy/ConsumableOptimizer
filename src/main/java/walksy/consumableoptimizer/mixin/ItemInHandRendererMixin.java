@@ -22,11 +22,9 @@ public abstract class ItemInHandRendererMixin {
     )
     private void shouldSkipHandAnimationOnSwap(ItemStack from, ItemStack to, CallbackInfoReturnable<Boolean> cir) {
         Minecraft client = Minecraft.getInstance();
-
         if (!Config.modEnabled || client.hasSingleplayerServer() || !ConsumableOptimizer.hasConsumable() || !ConsumableOptimizer.enabledServer) {
             return;
         }
-
         boolean fromConsumable = from.get(DataComponents.CONSUMABLE) != null;
         boolean toConsumable = to.get(DataComponents.CONSUMABLE) != null;
         if (fromConsumable && toConsumable && from.is(to.getItem()) && ConsumableHandler.shouldSkipHandAnimationOnSwap()) {

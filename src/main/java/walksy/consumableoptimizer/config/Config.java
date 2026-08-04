@@ -1,7 +1,7 @@
 package walksy.consumableoptimizer.config;
 
 import main.walksy.lib.api.WalksyLibConfig;
-import main.walksy.lib.core.config.impl.LocalConfig;
+import main.walksy.lib.core.config.impl.ModConfig;
 import main.walksy.lib.core.config.local.Category;
 import main.walksy.lib.core.config.local.Option;
 import main.walksy.lib.core.config.local.options.BooleanOption;
@@ -22,8 +22,8 @@ public class Config implements WalksyLibConfig {
         .build();
 
     @Override
-    public LocalConfig define() {
-        return LocalConfig.createBuilder("Consumable Optimizer")
+    public ModConfig define() {
+        return ModConfig.createBuilder()
             .path(PathUtils.ofConfigDir("consumableoptimizer"))
             .category(generalCategory)
             .build();

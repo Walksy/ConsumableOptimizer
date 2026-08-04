@@ -28,12 +28,16 @@ import java.util.List;
 
 public final class ConsumableHandler {
 
-    public static final ConsumptionStateHandler STATE = new ConsumptionStateHandler();
+    private static final ConsumptionStateHandler STATE = new ConsumptionStateHandler();
     private static final Minecraft client = Minecraft.getInstance();
 
-    public static void handleItemStackUsage(ItemStack stack, CallbackInfo ci) {
-        LocalPlayer player = client.player;
-        Consumable component = stack.get(DataComponents.CONSUMABLE);
+    public static boolean isWaitingForServer() {
+        return STATE.isWaitingForServer();
+    }
+
+    public static void handleItemStackUsage(final ItemStack stack, final CallbackInfo ci) {
+        final LocalPlayer player = client.player;
+        final Consumable component = stack.get(DataComponents.CONSUMABLE);
         if (player == null || component == null) return;
         if (!component.canConsume(player, stack) || player.getCooldowns().isOnCooldown(stack)) {
             client.gameMode.releaseUsingItem(player);
@@ -46,7 +50,7 @@ public final class ConsumableHandler {
         }
     }
 
-    public static void handlePacket(Packet<?> packet, CallbackInfo ci) {
+    public static void handlePacket(final Packet<?> packet, final CallbackInfo ci) {
         if (client.level == null || client.player == null) return;
 
         if (packet instanceof ClientboundEntityEventPacket status) {
@@ -59,25 +63,25 @@ public final class ConsumableHandler {
         }
     }
 
-    public static void handleEntityTrackerUpdate(ClientboundSetEntityDataPacket packet, CallbackInfo ci) {
+    public static void handleEntityTrackerUpdate(final ClientboundSetEntityDataPacket packet, final CallbackInfo ci) {
         if (client.level == null || client.player == null || !ConsumableOptimizer.hasConsumable()) return;
 
-        Entity entity = client.level.getEntity(packet.id());
+        final Entity entity = client.level.getEntity(packet.id());
         if (entity != client.player) return;
 
-        List<SynchedEntityData.DataValue<?>> values = packet.packedItems();
+        final List<SynchedEntityData.DataValue<?>> values = packet.packedItems();
         if (values == null) return;
 
-        int id = EntityDataTrackerValues.CONSUMPTION.getId();
+        final int id = EntityDataTrackerValues.CONSUMPTION.getId();
         values.stream().filter(e -> e != null && e.id() == id).findFirst().ifPresent(entry -> {
-            if (STATE.updateTrack(entry, client.player) && client.screen == null) {
+            if (STATE.updateTrack(entry, client.player) && client.gui.screen() == null) {
                 applyFilteredTracker(client.player, values, id);
                 ci.cancel();
             }
         });
     }
 
-    public static void handleServerSounds(SoundEvent sound, CallbackInfo ci) {
+    public static void handleServerSounds(final SoundEvent sound, final CallbackInfo ci) {
         if (STATE.shouldSuppressBurp() && sound == SoundEvents.PLAYER_BURP) {
             STATE.resetBurpSuppression();
             ci.cancel();
@@ -87,7 +91,7 @@ public final class ConsumableHandler {
         }
     }
 
-    private static void processAudio(LocalPlayer player, ItemStack stack, Consumable comp) {
+    private static void processAudio(final LocalPlayer player, final ItemStack stack, final Consumable comp) {
         STATE.setSoundSuppression(comp.sound().value());
         playSound(player, comp.sound().value(), true);
 
@@ -106,44 +110,42 @@ public final class ConsumableHandler {
         return STATE.shouldSuppressEquipmentAnimation();
     }
 
-    private static void consume(LocalPlayer player) {
-        if (player.isUsingItem()) {
-            InteractionHand hand = player.getUsedItemHand();
-            if (!player.getActiveItem().equals(player.getItemInHand(hand))) {
-                client.gameMode.releaseUsingItem(player);
-            } else {
-                if (!player.getActiveItem().isEmpty() && player.isUsingItem()) {
-                    finishUsing(player);
-                    player.stopUsingItem();
-                    STATE.startServerWait();
-                }
-            }
+    private static void consume(final LocalPlayer player) {
+        if (!player.isUsingItem()) return;
+
+        final InteractionHand hand = player.getUsedItemHand();
+        if (!player.getActiveItem().equals(player.getItemInHand(hand))) {
+            client.gameMode.releaseUsingItem(player);
+        } else if (!player.getActiveItem().isEmpty() && player.isUsingItem()) {
+            finishUsing(player);
+            player.stopUsingItem();
+            STATE.startServerWait();
         }
     }
 
-    public static void finishUsing(LivingEntity user) {
-        ItemStack stack = user.getActiveItem();
-        Consumable component = stack.get(DataComponents.CONSUMABLE);
+    public static void finishUsing(final LivingEntity user) {
+        final ItemStack stack = user.getActiveItem();
+        final Consumable component = stack.get(DataComponents.CONSUMABLE);
         if (component != null) {
             finish(component, user, stack);
         }
     }
 
-    private static void finish(Consumable component, LivingEntity user, ItemStack stack) {
+    private static void finish(final Consumable component, final LivingEntity user, final ItemStack stack) {
         component.emitParticlesAndSounds(user.getRandom(), user, stack, 16);
         STATE.suppressEquipmentAnimation();
     }
 
-    private static void playSound(LocalPlayer player, SoundEvent sound, boolean randomPitch) {
-        float pitch = randomPitch ? player.getRandom().triangle(1.0f, 0.4f) : 1.0f;
+    private static void playSound(final LocalPlayer player, final SoundEvent sound, final boolean randomPitch) {
+        final float pitch = randomPitch ? player.getRandom().triangle(1.0f, 0.4f) : 1.0f;
         playSound(player, sound, randomPitch, 1.0f, pitch);
     }
 
-    private static void playSound(LocalPlayer player, SoundEvent sound, boolean randomPitch, float volume, float pitch) {
+    private static void playSound(final LocalPlayer player, final SoundEvent sound, final boolean randomPitch, final float volume, final float pitch) {
         client.level.playSound(player, player.getX(), player.getY(), player.getZ(), sound, SoundSource.NEUTRAL, volume, pitch);
     }
 
-    private static void applyFilteredTracker(LocalPlayer player, List<SynchedEntityData.DataValue<?>> values, int excludeId) {
+    private static void applyFilteredTracker(final LocalPlayer player, final List<SynchedEntityData.DataValue<?>> values, final int excludeId) {
         player.getEntityData().assignValues(values.stream()
                 .filter(e -> e != null && e.id() != excludeId)
                 .toList());

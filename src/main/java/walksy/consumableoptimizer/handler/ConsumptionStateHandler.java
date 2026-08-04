@@ -10,6 +10,10 @@ import net.minecraft.world.item.component.Consumable;
 import java.util.Objects;
 
 public class ConsumptionStateHandler {
+
+    private static final long SERVER_WAIT_TIMEOUT_MS = 500L;
+    private static final long TRACKER_TIMEOUT_MS = 1500L;
+
     private boolean suppressServerBurp;
     private boolean suppressEquipmentAnimation;
     private SoundEvent soundToSuppress;
@@ -24,7 +28,7 @@ public class ConsumptionStateHandler {
     }
 
     public boolean isWaitingForServer() {
-        if (this.waitingForServer && (System.currentTimeMillis() - this.serverWaitStartTime > 500)) {
+        if (this.waitingForServer && System.currentTimeMillis() - this.serverWaitStartTime > SERVER_WAIT_TIMEOUT_MS) {
             this.waitingForServer = false;
         }
         return this.waitingForServer;
@@ -50,90 +54,63 @@ public class ConsumptionStateHandler {
         return this.suppressEquipmentAnimation;
     }
 
-    public void resetEquipmentAnimation() {
-        this.suppressEquipmentAnimation = false;
-    }
-
     public void resetBurpSuppression() {
         this.suppressServerBurp = false;
     }
 
-    public void setSoundSuppression(SoundEvent sound) {
+    public void setSoundSuppression(final SoundEvent sound) {
         this.soundToSuppress = sound;
     }
 
-    public boolean isSoundSuppressed(SoundEvent sound) {
-        return soundToSuppress != null && Objects.equals(soundToSuppress, sound);
+    public boolean isSoundSuppressed(final SoundEvent sound) {
+        return this.soundToSuppress != null && Objects.equals(this.soundToSuppress, sound);
     }
 
     public void clearSoundSuppression() {
         this.soundToSuppress = null;
     }
 
-    public void track() {
-        this.trackerState = 1;
-        this.trackerTriggerTime = System.currentTimeMillis();
-    }
-
-    public boolean updateTrack(SynchedEntityData.DataValue<?> entry, LocalPlayer player) {
-        int value = this.extractTrackerValue(entry);
-        boolean beginConsuming = value == 0 || value == 2;
-        boolean stopConsuming = value == 1 || value == 3;
-
+    public boolean updateTrack(final SynchedEntityData.DataValue<?> entry, final LocalPlayer player) {
+        final int value = this.extractTrackerValue(entry);
+        final boolean beginConsuming = value == 0 || value == 2;
+        final boolean stopConsuming = value == 1 || value == 3;
         if (stopConsuming) {
             this.stopServerWait();
         }
-
         if (player.isUsingItem()) {
-            ItemStack stack = player.getActiveItem();
-            Consumable component = stack.get(DataComponents.CONSUMABLE);
+            final ItemStack stack = player.getActiveItem();
+            final Consumable component = stack.get(DataComponents.CONSUMABLE);
             if (component != null && component.canConsume(player, stack)) {
                 return true;
             }
         }
-
         if (stopConsuming) {
             this.suppressEquipmentAnimation = false;
         }
-
-        if (trackerState == 0) {
+        if (this.trackerState == 0) {
             return false;
         }
-
-        if (System.currentTimeMillis() - trackerTriggerTime > 1500) {
-            trackerState = 0;
+        if (System.currentTimeMillis() - this.trackerTriggerTime > TRACKER_TIMEOUT_MS) {
+            this.trackerState = 0;
             return false;
         }
-
-        if (trackerState == 1) {
-            if (beginConsuming) {
-                trackerState = 2;
-                return true;
-            }
-
-            trackerState = 0;
-            return false;
+        if (this.trackerState == 1) {
+            this.trackerState = beginConsuming ? 2 : 0;
+            return beginConsuming;
         }
-
-        if (trackerState == 2) {
-            if (stopConsuming) {
-                trackerState = 0;
-                return true;
-            }
-
-            trackerState = 0;
-            return false;
+        if (this.trackerState == 2) {
+            this.trackerState = 0;
+            return stopConsuming;
         }
-
         return false;
     }
 
-
-    private int extractTrackerValue(SynchedEntityData.DataValue<?> entry) {
-        if (entry.value() instanceof Number n) {
+    private int extractTrackerValue(final SynchedEntityData.DataValue<?> entry) {
+        final Object value = entry.value();
+        if (value instanceof Number n) {
             return n.intValue();
         }
-        if (entry.value() instanceof Boolean b) {
+        if (value instanceof Boolean b) {
             return b ? 1 : 0;
         }
         return -1;

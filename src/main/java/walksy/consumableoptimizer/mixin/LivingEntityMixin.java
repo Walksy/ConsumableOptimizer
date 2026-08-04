@@ -16,8 +16,12 @@ public class LivingEntityMixin {
 
     @Inject(method = "updateUsingItem", at = @At("HEAD"), cancellable = true)
     private void tickItemStackUsage(ItemStack useItem, CallbackInfo ci) {
-        if (!Config.modEnabled || Minecraft.getInstance().hasSingleplayerServer() || !ConsumableOptimizer.enabledServer) return;
-        if (LivingEntity.class.cast(this) != Minecraft.getInstance().player) return;
+        if (!Config.modEnabled || Minecraft.getInstance().hasSingleplayerServer() || !ConsumableOptimizer.enabledServer) {
+            return;
+        }
+        if (LivingEntity.class.cast(this) != Minecraft.getInstance().player) {
+            return;
+        }
         ConsumableHandler.handleItemStackUsage(useItem, ci);
     }
 }

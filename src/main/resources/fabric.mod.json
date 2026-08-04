@@ -31,6 +31,6 @@
 		"minecraft": "*",
 		"java": ">=17",
 		"fabric-api": "*",
-    "walksylib": ">=0.9.95"
+    "walksylib": ">=1.0.12"
   }
 }
